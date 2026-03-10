@@ -1,5 +1,6 @@
 package org.uvccamera.flutter;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
@@ -1107,6 +1108,10 @@ import io.flutter.view.TextureRegistry;
             throw new IllegalStateException("applicationContext reference has expired");
         }
 
+        if (applicationContext.checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            throw new SecurityException("RECORD_AUDIO permission is required for video recording with audio");
+        }
+
         final var mediaRecorder = cameraResources.mediaRecorder();
         mediaRecorder.reset();
 
@@ -1118,8 +1123,12 @@ import io.flutter.view.TextureRegistry;
             throw new IllegalStateException("Failed to create video recording file", e);
         }
 
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        mediaRecorder.setAudioSamplingRate(44100);
+        mediaRecorder.setAudioEncodingBitRate(128000);
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         mediaRecorder.setVideoSize(frameWidth, frameHeight);
         mediaRecorder.setVideoFrameRate(30);
